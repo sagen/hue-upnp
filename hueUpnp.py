@@ -1,15 +1,14 @@
 import socket, time, SocketServer
 from threading import Thread
 
-print([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][:1])
-
-ANY_IP = "0.0.0.0"
-MCAST_IP = "239.255.255.250"
+#config
+BCAST_IP = "239.255.255.250"
 UPNP_PORT = 1900
+BROADCAST_INTERVAL = 20 # Seconds between upnp broadcast
+IP = "192.168.1.16" # Bind to IP
+HTTP_PORT = 1901 # HTTP-port to serve icons and xml
+
 M_SEARCH_REQ_MATCH = "M-SEARCH"
-BROADCAST_INTERVAL = 20 #seconds between upnp broadcast
-IP = "192.168.1.16"
-HTTP_PORT = 1901
 
 UPNP_BROADCAST = """NOTIFY * HTTP/1.1
 HOST: 239.255.255.250:1900
@@ -101,7 +100,7 @@ class Broadcaster(Thread):
 		sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 20)
 		
 		while True:
-			sock.sendto(UPNP_BROADCAST, (MCAST_IP, UPNP_PORT))
+			sock.sendto(UPNP_BROADCAST, (BCAST_IP, UPNP_PORT))
 			for x in range(BROADCAST_INTERVAL):
 				time.sleep(1)
 				if self.interrupted:
@@ -115,8 +114,8 @@ class Responder(Thread):
 	interrupted = False
 	def run(self):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		sock.bind((ANY_IP, UPNP_PORT))
-		sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(MCAST_IP) + socket.inet_aton(ANY_IP));
+		sock.bind((IP, UPNP_PORT))
+		sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(BCAST_IP) + socket.inet_aton(IP));
 		sock.settimeout(1)
 	 	while True:
 			try:
