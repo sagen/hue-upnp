@@ -140,13 +140,13 @@ class Responder(Thread):
 		print "Response sent"
 
 class Httpd(Thread):
-	def run(self):
-		self.server = SocketServer.ThreadingTCPServer((IP, HTTP_PORT), HttpdRequestHandler)
-		self.server.allow_reuse_address = True
-		self.server.serve_forever()	
-
-	def stop(self):
-		self.server.shutdown()
+    def run(self):
+        SocketServer.ThreadingTCPServer.allow_reuse_address = True
+        self.server = SocketServer.ThreadingTCPServer((IP, HTTP_PORT), HttpdRequestHandler)
+        self.server.serve_forever() 
+    def stop(self):
+        self.server.socket.close()
+        self.server.server_close()
 
 class HttpdRequestHandler(SocketServer.BaseRequestHandler ):
 	def handle(self):
